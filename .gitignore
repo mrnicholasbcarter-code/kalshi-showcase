@@ -1,0 +1,56 @@
+# Secrets & credentials
+.env
+.env.*
+*.pem
+*.key
+*.secret
+
+# Databases
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.venv/
+venv/
+env/
+.pytest_cache/
+.coverage
+.tox/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data
+data/
+*.pkl
+*.jsonl
+
+# Results (keep the HTML report but not generated data)
+results/*.json
+results/*.csv
+
+# Build
+dist/
+build/
+*.egg-info/
+
+# Temporary
+*.tmp
+*.temp
+.tmp/

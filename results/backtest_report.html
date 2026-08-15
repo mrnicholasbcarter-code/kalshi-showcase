@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Backtest Results — Kalshi Trading System</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      color-scheme: light;
+      --surface-1: #fcfcfb;
+      --surface-2: #f3f2ef;
+      --text-primary: #0b0b0b;
+      --text-secondary: #52514e;
+      --text-muted: #898781;
+      --gridline: #e1e0d9;
+      --baseline: #c3c2b7;
+      --border: rgba(11,11,11,0.10);
+      --series-1: #2a78d6;
+      --series-2: #d6662a;
+      --series-3: #2a8fd6;
+      --series-4: #d62a78;
+      --series-5: #78d62a;
+      --positive: #0a7f0a;
+      --negative: #c41e1e;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        color-scheme: dark;
+        --surface-1: #1c1c1a;
+        --surface-2: #252523;
+        --text-primary: #ffffff;
+        --text-secondary: #c3c2b7;
+        --text-muted: #898781;
+        --gridline: #2c2c2a;
+        --baseline: #383835;
+        --border: rgba(255,255,255,0.10);
+        --series-1: #6aa8f7;
+        --series-2: #f79a6a;
+        --series-3: #6ac8f7;
+        --series-4: #f76aaa;
+        --series-5: #aaf76a;
+        --positive: #0ca30c;
+        --negative: #f05050;
+      }
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: var(--surface-1);
+      color: var(--text-primary);
+      line-height: 1.5;
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text-primary);
+    }
+    h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 2rem 0 1rem;
+      color: var(--text-primary);
+    }
+    .subtitle {
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .metric-card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .metric-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+    }
+    .metric-value {
+      font-size: 1.5rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+    .metric-value.positive { color: var(--positive); }
+    .metric-value.negative { color: var(--negative); }
+
+    .chart-container {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .chart-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 1rem;
+    }
+    .chart-wrapper {
+      position: relative;
+      height: 300px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+      margin-top: 1rem;
+    }
+    th, td {
+      text-align: left;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--gridline);
+    }
+    th {
+      font-weight: 600;
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    td {
+      font-variant-numeric: tabular-nums;
+    }
+    tr:hover {
+      background: var(--surface-1);
+    }
+    .pnl-positive { color: var(--positive); }
+    .pnl-negative { color: var(--negative); }
+
+    .footer {
+      margin-top: 3rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--gridline);
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <h1>Backtest Results</h1>
+  <p class="subtitle">Kalshi 15-Minute Crypto Markets — Paper Trading Performance (Mar–May 2026)</p>
+
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-label">Total PnL</div>
+      <div class="metric-value positive">$860.31</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Total Trades</div>
+      <div class="metric-value">5,739</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Win Rate</div>
+      <div class="metric-value">88.0%</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Sharpe (Daily)</div>
+      <div class="metric-value">5.12</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Profit Factor</div>
+      <div class="metric-value">1.27</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Avg Trade</div>
+      <div class="metric-value">$0.15</div>
+    </div>
+  </div>
+
+  <h2>Cumulative PnL</h2>
+  <div class="chart-container">
+    <div class="chart-wrapper">
+      <canvas id="cumulativeChart"></canvas>
+    </div>
+  </div>
+
+  <h2>Daily PnL</h2>
+  <div class="chart-container">
+    <div class="chart-wrapper">
+      <canvas id="dailyChart"></canvas>
+    </div>
+  </div>
+
+  <h2>Performance by Series</h2>
+  <div class="chart-container">
+    <div class="chart-wrapper">
+      <canvas id="seriesChart"></canvas>
+    </div>
+  </div>
+
+  <h2>Series Details</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Series</th>
+        <th>Trades</th>
+        <th>Total PnL</th>
+        <th>Avg Trade</th>
+        <th>Win Rate</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>KXXRP15M</td>
+        <td>1,015</td>
+        <td class="pnl-positive">+$483.60</td>
+        <td>$0.48</td>
+        <td>90.3%</td>
+      </tr>
+      <tr>
+        <td>KXHYPE15M</td>
+        <td>741</td>
+        <td class="pnl-positive">+$482.78</td>
+        <td>$0.65</td>
+        <td>89.6%</td>
+      </tr>
+      <tr>
+        <td>KXDOGE15M</td>
+        <td>836</td>
+        <td class="pnl-positive">+$177.55</td>
+        <td>$0.21</td>
+        <td>88.6%</td>
+      </tr>
+      <tr>
+        <td>KXETH15M</td>
+        <td>954</td>
+        <td class="pnl-positive">+$115.00</td>
+        <td>$0.12</td>
+        <td>87.6%</td>
+      </tr>
+      <tr>
+        <td>KXBNB15M</td>
+        <td>525</td>
+        <td class="pnl-negative">-$13.27</td>
+        <td>-$0.03</td>
+        <td>87.8%</td>
+      </tr>
+      <tr>
+        <td>KXSOL15M</td>
+        <td>847</td>
+        <td class="pnl-negative">-$26.81</td>
+        <td>-$0.03</td>
+        <td>86.9%</td>
+      </tr>
+      <tr>
+        <td>KXBTC15M</td>
+        <td>757</td>
+        <td class="pnl-negative">-$367.22</td>
+        <td>-$0.49</td>
+        <td>83.9%</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="footer">
+    <p><strong>Methodology:</strong> Paper trading with simulated fills accounting for slippage and marketability. Risk-managed position sizing with Kelly criterion and HRP portfolio allocation. Kill-switch enforced at 10% drawdown or 8 consecutive losses.</p>
+    <p style="margin-top: 0.5rem;"><strong>Period:</strong> 2026-03-28 to 2026-05-26 (23 trading days)</p>
+  </div>
+
+  <script>
+    const dates = ['2026-03-28', '2026-03-29', '2026-03-30', '2026-03-31', '2026-04-01', '2026-04-02', '2026-04-03', '2026-04-04', '2026-04-05', '2026-04-06', '2026-04-07', '2026-04-08', '2026-04-09', '2026-04-10', '2026-04-14', '2026-04-15', '2026-04-16', '2026-04-17', '2026-04-18', '2026-05-19', '2026-05-23', '2026-05-24', '2026-05-26'];
+
+    const dailyPnL = [-50.01, 46.86, 498.16, -181.56, 20.79, 71.91, 120.71, 53.03, -46.88, 139.17, 23.44, 7.62, -15.48, 2.53, -2.93, 68.53, 74.93, 9.97, 18.78, 0.22, 0.20, 0.20, 0.12];
+
+    const cumulativePnL = [-50.01, -3.15, 495.01, 313.45, 334.24, 406.15, 526.86, 579.89, 533.01, 672.18, 695.62, 703.24, 687.76, 690.29, 687.36, 755.89, 830.82, 840.79, 859.57, 859.79, 859.99, 860.19, 860.31];
+
+    const seriesLabels = ['KXXRP15M', 'KXHYPE15M', 'KXDOGE15M', 'KXETH15M', 'KXBNB15M', 'KXSOL15M', 'KXBTC15M'];
+    const seriesPnL = [483.60, 482.78, 177.55, 115.00, -13.27, -26.81, -367.22];
+    const seriesColors = seriesPnL.map(v => v >= 0 ? '#0a7f0a' : '#c41e1e');
+
+    const chartOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          titleFont: { size: 12 },
+          bodyFont: { size: 12 },
+          padding: 10,
+          cornerRadius: 4
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { color: '#898781', font: { size: 11 } }
+        },
+        y: {
+          grid: { color: '#e1e0d9', lineWidth: 1 },
+          ticks: { color: '#898781', font: { size: 11 } }
+        }
+      }
+    };
+
+    // Cumulative PnL chart
+    new Chart(document.getElementById('cumulativeChart'), {
+      type: 'line',
+      data: {
+        labels: dates,
+        datasets: [{
+          data: cumulativePnL,
+          borderColor: '#2a78d6',
+          backgroundColor: 'rgba(42, 120, 214, 0.1)',
+          fill: true,
+          tension: 0.1,
+          pointRadius: 3,
+          pointHoverRadius: 5
+        }]
+      },
+      options: {
+        ...chartOptions,
+        plugins: {
+          ...chartOptions.plugins,
+          tooltip: {
+            ...chartOptions.plugins.tooltip,
+            callbacks: {
+              label: ctx => `Cumulative PnL: $${ctx.raw.toFixed(2)}`
+            }
+          }
+        },
+        scales: {
+          ...chartOptions.scales,
+          y: {
+            ...chartOptions.scales.y,
+            ticks: {
+              ...chartOptions.scales.y.ticks,
+              callback: v => '$' + v
+            }
+          }
+        }
+      }
+    });
+
+    // Daily PnL chart
+    new Chart(document.getElementById('dailyChart'), {
+      type: 'bar',
+      data: {
+        labels: dates,
+        datasets: [{
+          data: dailyPnL,
+          backgroundColor: dailyPnL.map(v => v >= 0 ? 'rgba(10, 127, 10, 0.8)' : 'rgba(196, 30, 30, 0.8)'),
+          borderRadius: 2
+        }]
+      },
+      options: {
+        ...chartOptions,
+        plugins: {
+          ...chartOptions.plugins,
+          tooltip: {
+            ...chartOptions.plugins.tooltip,
+            callbacks: {
+              label: ctx => `Daily PnL: $${ctx.raw.toFixed(2)}`
+            }
+          }
+        },
+        scales: {
+          ...chartOptions.scales,
+          y: {
+            ...chartOptions.scales.y,
+            ticks: {
+              ...chartOptions.scales.y.ticks,
+              callback: v => '$' + v
+            }
+          }
+        }
+      }
+    });
+
+    // Series chart
+    new Chart(document.getElementById('seriesChart'), {
+      type: 'bar',
+      data: {
+        labels: seriesLabels,
+        datasets: [{
+          data: seriesPnL,
+          backgroundColor: seriesColors,
+          borderRadius: 2
+        }]
+      },
+      options: {
+        ...chartOptions,
+        plugins: {
+          ...chartOptions.plugins,
+          tooltip: {
+            ...chartOptions.plugins.tooltip,
+            callbacks: {
+              label: ctx => `Total PnL: $${ctx.raw.toFixed(2)}`
+            }
+          }
+        },
+        scales: {
+          ...chartOptions.scales,
+          y: {
+            ...chartOptions.scales.y,
+            ticks: {
+              ...chartOptions.scales.y.ticks,
+              callback: v => '$' + v
+            }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
