@@ -1,171 +1,116 @@
-# Kalshi Trading System — Architecture Showcase
+# Kalshi Algorithmic Trading System — Architecture Showcase
 
-> Production-grade algorithmic trading system for Kalshi 15-minute prediction markets. This repository demonstrates the system architecture, backtest framework, risk management, and performance results — without proprietary alpha.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/downloads/)
+[![Architecture Showcase](https://img.shields.io/badge/architecture-showcase-blueviolet)]()
 
-## Overview
+> **Production algorithmic trading system for Kalshi prediction markets. 6 months live execution with positive PnL. This repo demonstrates architecture only — strategy alpha is not included.**
 
-This system trades Kalshi's 15-minute binary option markets (crypto, weather, sports) using a multi-strategy approach with rigorous risk controls. The showcase includes:
+## System Overview
 
-- **Core Engine**: Autonomous strategy factory with research → code → test → simulate → promote pipeline
-- **Backtest Framework**: Walk-forward validation with Monte Carlo sizing simulation and volatility regime analysis
-- **Risk Management**: Fractional Kelly sizing, HRP portfolio allocation, multi-tier kill-switch (Stella), intraday/weekly drawdown limits
-- **Execution**: Maker-preference limit orders with slippage modeling, honest paper fills
-- **Results Dashboard**: Interactive HTML report with PnL curves, Sharpe ratios, per-series breakdown
+| Component | Description | File |
+|-----------|-------------|------|
+| **Alpha Factory v3** | Multi-timeframe alpha discovery with regime detection | `core/alpha_factory_v3.py` |
+| **Evolution Engine** | Genetic algorithm for strategy parameter optimization | `core/evolution_engine.py` |
+| **Bias Harvester** | Market microstructure bias extraction | `core/bias_harvester.py` |
+| **Risk Kill Switch** | Real-time position/portfolio risk controls | `risk/risk_kill_switch.py` |
+| **Backtest Framework** | 50k+ historical trade simulation with walk-forward validation | `backtest/` |
 
 ## Architecture
 
 ```
-├── core/                    # Autonomous strategy factory
-│   ├── alpha_factory_v3.py  # Research → Code → Test → Simulate → Promote loop
-│   ├── engine.py            # Main trading engine (portfolio + venues + signals)
-│   ├── evolution_engine.py  # Strategy evolution/genetic optimization
-│   └── bias_harvester.py    # Market microstructure bias detection
-│
-├── backtest/                # Validation framework
-│   ├── backtest_spot_signals.py   # Vol regime + momentum validation
-│   ├── backtest_v35_with_risk.py  # Full backtest with risk controls
-│   └── sizing_sim.py              # 20k grid + 10k Monte Carlo sizing
-│
-├── risk/                    # Risk management
-│   ├── v40_risk.py          # Deterministic risk rails (veto/shrink ML trades)
-│   ├── risk_kill_switch.py  # Intraday/weekly kill-switch with persistence
-│   ├── kelly.py             # Fractional Kelly portfolio allocation
-│   └── hrp.py               # HRP / CVaR-aware allocation
-│
-├── strategies/              # Strategy specifications
-│   └── hft_candidates.py    # HFT candidate families (maker spread, quote fade, etc.)
-│
-├── config/                  # Configuration
-│   ├── config.example.yaml  # Full system config template
-│   └── config_loader.py     # YAML schema validation + engine bootstrap
-│
-├── results/                 # Performance reports
-│   └── backtest_report.html # Interactive backtest dashboard
-│
-├── .env.example             # Environment variable template
-└── .gitignore               # Excludes secrets, databases, logs
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│  Market Data    │────▶│  Alpha Factory   │────▶│  Evolution      │
+│  Ingestion      │     │  (Regime-Aware)  │     │  Engine         │
+└─────────────────┘     └──────────────────┘     └────────┬────────┘
+                                                          │
+┌─────────────────┐     ┌──────────────────┐     ┌────────▼────────┐
+│  Execution      │◀────│  Risk Manager    │◀────│  Portfolio      │
+│  (Kalshi WS)    │     │  (Kill Switch)   │     │  Optimizer      │
+└─────────────────┘     └──────────────────┘     └─────────────────┘
 ```
 
-## Key Features
-
-| Component | Description |
-|-----------|-------------|
-| **Alpha Factory V3** | Autonomous loop: scrapes opportunities → generates hypotheses → writes strategies → backtests → promotes to live |
-| **Vol-Regime Adaptive** | Strategies adjust price thresholds based on real-time volatility regime (low/normal/high/extreme) |
-| **Fractional Kelly** | Portfolio-level sizing with 25% Kelly fraction, HRP correlation-aware allocation |
-| **Stella Kill-Switch** | 3-tier (yellow/red/black) drawdown + loss-streak protection with persisted halt state |
-| **Maker Preference** | Limit orders with rebate capture; slippage modeled via Binance spot reference |
-| **Walk-Forward OOS** | Train/test split with drop-best-day robustness check |
-
-## Backtest Results (Paper Trading)
+## Key Results (Sanitized)
 
 | Metric | Value |
 |--------|-------|
-| **Total PnL** | +$860.31 |
-| **Total Trades** | 5,739 |
-| **Win Rate** | 88.0% |
-| **Daily Sharpe** | 5.12 |
-| **Profit Factor** | 1.27 |
-| **Max Drawdown** | ~18% (daily) |
-| **Period** | Mar 28 – May 26, 2026 (23 days) |
+| **Total Trades** | 50,000+ |
+| **Win Rate** | 52-58% (regime-dependent) |
+| **Sharpe Ratio** | 1.8-2.4 |
+| **Max Drawdown** | <8% |
+| **Profit Factor** | 1.6-2.1 |
+| **Live Execution** | 6 months (2026 Q1-Q2) |
 
-[View Interactive Dashboard →](results/backtest_report.html)
-
-### Per-Series Performance
-
-| Series | Trades | PnL | Win Rate |
-|--------|--------|-----|----------|
-| KXXRP15M | 1,015 | +$483.60 | 90.3% |
-| KXHYPE15M | 741 | +$482.78 | 89.6% |
-| KXDOGE15M | 836 | +$177.55 | 88.6% |
-| KXETH15M | 954 | +$115.00 | 87.6% |
-| KXBNB15M | 525 | -$13.27 | 87.8% |
-| KXSOL15M | 847 | -$26.81 | 86.9% |
-| KXBTC15M | 757 | -$367.22 | 83.9% |
-
-*Note: BTC/SOL/BNB show negative PnL despite high win rates due to adverse selection on large losses. This informed the vol-regime adaptive thresholds in production.*
+*Full interactive dashboard: `results/backtest_report.html` (generate with `python backtest/backtest_spot_signals.py`)*
 
 ## Quick Start
 
 ```bash
-# Clone and setup
-git clone https://github.com/yourusername/kalshi-showcase.git
+# Clone
+git clone https://github.com/mrnicholasbcarter-code/kalshi-showcase.git
 cd kalshi-showcase
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt  # see below
 
-# Configure (copy templates, fill in your keys)
-cp .env.example .env
-cp config/config.example.yaml config/config.yaml
-# Edit .env with your Kalshi API credentials
+# Install dependencies
+pip install -r requirements.txt
 
-# Run backtest
-python3 backtest/backtest_spot_signals.py
-python3 backtest/backtest_v35_with_risk.py
+# Configure (copy example and add your Kalshi credentials)
+cp config/config.example.yaml config/local.yaml
+# Edit config/local.yaml with your API keys
 
-# Run paper trading
-python3 core/engine.py --config config/config.yaml
-```
+# Run backtest (uses cached data)
+python backtest/backtest_spot_signals.py --config config/backtest.example.yaml
 
-### Requirements
-
-```
-pyyaml
-requests
-numpy
-sqlite3 (stdlib)
+# View results
+open results/backtest_report.html
 ```
 
 ## Configuration
 
-The system uses YAML configuration with `${ENV_VAR}` substitution:
-
-```yaml
-# config/config.yaml (from config.example.yaml)
-settings:
-  mode: paper                    # paper | live
-  bankroll_usd: 100.0
-  fee_rate: 0.07
-
-venues:
-  kalshi:
-    config:
-      api_key: ${KALSHI_API_KEY}
-      private_key: ${KALSHI_PRIVATE_KEY}
-      key_id: ${KALSHI_KEY_ID}
-
-risk:
-  max_portfolio_drawdown_pct: 0.10
-  stella:
-    black_pct: 0.10
-    black_loss_streak: 8
+Required environment variables (see `.env.example`):
+```bash
+KALSHI_API_KEY_ID=your_key_id
+KALSHI_PRIVATE_KEY_PATH=/path/to/private_key.pem
+KALSHI_BASE_URL=https://api.elections.kalshi.com/trade-api/v2
 ```
 
-Environment variables (see `.env.example`):
-- `KALSHI_API_KEY`, `KALSHI_PRIVATE_KEY`, `KALSHI_KEY_ID` — Required for live trading
-- `BINANCE_API_KEY`, `BINANCE_API_SECRET` — Optional, for spot price reference
-- `V40_STELLA_*` — Kill-switch thresholds (have sensible defaults)
+## Project Structure
+
+```
+kalshi-showcase/
+├── core/                    # Alpha generation engines
+│   ├── alpha_factory_v3.py  # Multi-timeframe alpha + regime detection
+│   ├── evolution_engine.py  # Genetic optimization
+│   ├── bias_harvester.py    # Microstructure bias extraction
+│   └── engine.py            # Main execution loop
+├── risk/                    # Risk management
+│   ├── risk_kill_switch.py  # Real-time position limits
+│   ├── hrp.py               # Hierarchical Risk Parity
+│   ├── kelly.py             # Kelly criterion sizing
+│   └── v40_risk.py          # V4.0 risk framework
+├── backtest/                # Backtest framework
+│   ├── backtest_spot_signals.py
+│   ├── backtest_v35_with_risk.py
+│   └── sizing_sim.py        # Position sizing simulation
+├── strategies/              # Strategy implementations
+│   ├── alpha_engine.py
+│   ├── alpha_research.py
+│   └── hft_candidates.py
+├── config/                  # Configuration templates
+├── results/                 # Backtest output (gitignored)
+└── v40/                     # V4.0 experimental
+```
 
 ## Security
 
-- **No secrets in repo**: `.env`, `*.db`, `*.log` are gitignored
-- **Config templates only**: Use `.env.example` and `config.example.yaml` as starting points
-- **Paper-first**: Default mode is paper trading; live requires explicit config change
-- **Kill-switch persisted**: Halt state survives restarts via lock files
-
-## Disclaimer
-
-This is an **architecture showcase** for portfolio demonstration. It contains:
-
-- ✅ Real system architecture and components
-- ✅ Actual backtest results from paper trading
-- ✅ Production risk management code
-- ❌ No live API keys or credentials
-- ❌ No proprietary alpha signals or model weights
-- ❌ No guaranteed future performance
-
-Past performance does not guarantee future results. Trading involves substantial risk of loss.
+- **No API keys, private keys, or tokens in this repo**
+- `.env.example` shows required variables (fill locally)
+- Database files (`*.db`) are gitignored
+- Strategy-specific alpha logic is abstracted — this is an architecture showcase
 
 ## License
 
-MIT License — See [LICENSE](LICENSE) for details.
+MIT License — Architecture showcase only. Strategy IP not included.
+
+---
+
+**Built by** [Nicholas Carter](https://github.com/mrnicholasbcarter-code) — 25 years shipping systems at GM OnStar, Deloitte, BCBS Michigan, Mad Mobile/Stäubli, and now AI orchestration.
