@@ -1,0 +1,153 @@
+# Kalshi Trading System — Example Configuration
+# Copy this file to config.yaml and customize for your environment
+# NEVER commit config.yaml with real credentials to version control
+
+settings:
+  mode: paper                    # paper | live
+  loop_secs: 20                  # Main loop interval (seconds)
+  min_volume_usd: 50             # Minimum market volume to consider
+  bankroll_usd: 100.0            # Starting bankroll for paper trading
+  fee_rate: 0.07                 # Kalshi fee rate (7%)
+
+  # Series to trade (Kalshi tickers)
+  crypto_series:
+    - KXBTC15M
+    - KXETH15M
+    - KXSOL15M
+    - KXXRP15M
+    - KXDOGE15M
+    - KXBNB15M
+    - KXHYPE15M
+
+  # Weather/Climate series (example)
+  weather_series:
+    - KXHIGHNY
+    - KXHIGHAUS
+
+  # Sports series (example)
+  sports_series:
+    - KXNBASTL
+    - KXNBAREB
+    - KXNBA3D
+
+# Venue configuration
+venues:
+  kalshi:
+    class: KalshiVenue
+    config:
+      api_key: ${KALSHI_API_KEY}
+      private_key: ${KALSHI_PRIVATE_KEY}
+      key_id: ${KALSHI_KEY_ID}
+      base_url: "https://api.elections.kalshi.com"
+
+  binance:
+    class: BinanceVenue
+    config:
+      api_key: ${BINANCE_API_KEY}
+      api_secret: ${BINANCE_API_SECRET}
+
+# Signal providers
+signals:
+  - name: vol_regime
+    class: VolRegimeSignal
+    config:
+      lookback_hours: 24
+      thresholds:
+        low: 0.3
+        normal: 0.6
+        high: 0.85
+        extreme: 1.0
+
+  - name: momentum_5m
+    class: MomentumSignal
+    config:
+      window_minutes: 5
+      threshold: 0.01
+
+  - name: spread_bps
+    class: SpreadSignal
+    config:
+      min_spread_bps: 50
+
+# Strategy definitions
+strategies:
+  # High-probability near-expiry bond strategy
+  - name: bond_strategy
+    enabled: true
+    class: BondStrategy
+    config:
+      price_lo: 0.93
+      price_hi: 0.98
+      max_secs_to_expiry: 420
+      min_volume_usd: 100
+      stake_usd: 2.0
+      max_concurrent: 3
+
+  # Volatility regime adaptive strategy
+  - name: vol_adaptive
+    enabled: true
+    class: VolAdaptiveStrategy
+    config:
+      low_vol:
+        price_lo: 0.95
+        price_hi: 0.99
+      normal_vol:
+        price_lo: 0.93
+        price_hi: 0.97
+      high_vol:
+        price_lo: 0.90
+        price_hi: 0.95
+
+  # Maker spread capture (paper-only until validated)
+  - name: maker_spread_rebate_capture
+    enabled: false
+    class: MakerSpreadStrategy
+    config:
+      min_spread_bps: 80
+      min_book_depth: 50
+      max_hold_secs: 180
+
+# Risk management configuration
+risk:
+  # Portfolio-level risk
+  max_portfolio_drawdown_pct: 0.10      # 10% max drawdown
+  max_daily_loss_usd: 10.0              # Daily loss limit
+  max_concurrent_positions: 5           # Max open positions
+  kill_switch_enabled: true
+
+  # Per-strategy risk
+  strategy_risk:
+    bond_strategy:
+      max_drawdown_usd: 5.0
+      max_open_positions: 3
+    vol_adaptive:
+      max_drawdown_usd: 3.0
+      max_open_positions: 2
+
+  # Stella kill-switch thresholds (env-configurable)
+  stella:
+    black_pct: 0.10           # 10% drawdown = halt
+    black_loss_streak: 8      # 8 consecutive losses = halt
+    red_pct: 0.05             # 5% drawdown = 50% size
+    red_loss_streak: 5        # 5 losses = 50% size
+    yellow_pct: 0.025         # 2.5% drawdown = 75% size
+    yellow_loss_streak: 3     # 3 losses = 75% size
+
+# Capital allocation
+allocation:
+  bond_strategy: 0.60         # 60% of capital
+  vol_adaptive: 0.30          # 30% of capital
+  maker_spread_rebate_capture: 0.10  # 10% of capital
+
+# Execution
+execution:
+  default_order_type: limit
+  maker_preference: true
+  max_slippage_bps: 20
+  order_timeout_secs: 30
+
+# Data & logging
+data:
+  cache_dir: ./data/cache
+  log_dir: ./logs
+  retention_days: 30
