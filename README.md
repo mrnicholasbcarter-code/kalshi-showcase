@@ -81,7 +81,7 @@ Live system architecture (execution components are private):
 ## Quick Start
 
 > **Note on backtest scripts:** `backtest/backtest_spot_signals.py` and
-> `backtest/sizing_sim.py` read from the operator's private SQLite trade
+> `backtest/sizing_sim.py` read from my private SQLite trade
 > database and **cannot run from this repo alone**. They are included to
 > show architecture and query patterns only.
 
