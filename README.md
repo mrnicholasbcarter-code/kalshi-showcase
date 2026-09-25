@@ -1,7 +1,9 @@
-# Kalshi Algorithmic Trading System — Architecture Showcase
+# Kalshi Trading: Risk Layer and Verified Track Record
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/downloads/)
+
+> The live trading engine, execution loop and strategy logic are in a private repository; this repo contains the risk and evaluation layer.
 
 ## Live track record (exchange-verified)
 
@@ -47,15 +49,20 @@ A very high win rate on near-certain contracts is not the same as an edge — yo
 
 | Component | Description | File |
 |-----------|-------------|------|
-| **Alpha Factory v3** | Multi-timeframe alpha discovery with regime detection | `core/alpha_factory_v3.py` |
-| **Evolution Engine** | Genetic algorithm for strategy parameter optimization | `core/evolution_engine.py` |
-| **Bias Harvester** | Market microstructure bias extraction | `core/bias_harvester.py` |
-| **Risk Kill Switch** | Real-time intraday/weekly drawdown controls | `risk/risk_kill_switch.py` |
-| **Kelly Sizing** | Fractional Kelly sizing across candidate pool | `risk/kelly.py` |
-| **HRP Allocation** | Hierarchical Risk Parity portfolio optimizer | `risk/hrp.py` |
-| **Backtest Framework** | Historical trade simulation with walk-forward validation | `backtest/` |
+| **Intraday/Weekly Kill Switch** | Halts new trades when intraday or weekly drawdown thresholds are breached | `risk/risk_kill_switch.py` |
+| **Fractional Kelly Sizing** | Per-position size allocation across candidate pool using fractional Kelly criterion | `risk/kelly.py` |
+| **HRP Allocation** | Hierarchical Risk Parity portfolio optimizer with optional CVaR weighting | `risk/hrp.py` |
+| **V4.0 Risk Rails** | Model-agnostic veto/shrink layer applied to every ML-approved trade | `risk/v40_risk.py` |
+| **Sizing Simulation** | 20k-grid sizing search with 10k Monte Carlo bootstrap and walk-forward validation | `backtest/sizing_sim.py` |
+| **Signal Backtest** | Vol-regime + momentum signal validation against live trades (needs private DB) | `backtest/backtest_spot_signals.py` |
+| **Strategy Specs** | Typed `StrategySpec` / `RuleHypothesisV1` data classes for candidate strategies | `strategies/hft_candidates.py` |
+| **Alpha Factory scaffold** | Orchestrator loop skeleton (research → code → simulate → promote); private agent deps not included | `core/alpha_factory_v3.py` |
+
+---
 
 ## Architecture
+
+Live system architecture (execution components are private):
 
 ```
 ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
@@ -69,11 +76,13 @@ A very high win rate on near-certain contracts is not the same as an edge — yo
 └─────────────────┘     └──────────────────┘     └─────────────────┘
 ```
 
+---
+
 ## Quick Start
 
 > **Note on backtest scripts:** `backtest/backtest_spot_signals.py` and
-> `backtest/backtest_v35_with_risk.py` read from the operator's private SQLite
-> trade database and **cannot run from this repo alone**. They are included to
+> `backtest/sizing_sim.py` read from the operator's private SQLite trade
+> database and **cannot run from this repo alone**. They are included to
 > show architecture and query patterns only.
 
 The Kelly and HRP math modules have **no private dependencies** and run on a
@@ -136,28 +145,22 @@ KALSHI_BASE_URL=https://api.elections.kalshi.com/trade-api/v2
 
 ```
 kalshi-showcase/
-├── core/                    # Alpha generation engines
-│   ├── alpha_factory_v3.py  # Multi-timeframe alpha + regime detection
-│   ├── evolution_engine.py  # Genetic optimization
-│   ├── bias_harvester.py    # Microstructure bias extraction
-│   └── engine.py            # Main execution loop
-├── risk/                    # Risk management
-│   ├── risk_kill_switch.py  # Intraday/weekly kill switch
-│   ├── hrp.py               # Hierarchical Risk Parity
-│   ├── kelly.py             # Kelly criterion sizing
-│   ├── risk_manager.py      # Risk manager integration
-│   └── v40_risk.py          # V4.0 risk framework
-├── backtest/                # Backtest framework (needs private DB)
-│   ├── backtest_spot_signals.py
-│   ├── backtest_v35_with_risk.py
-│   └── sizing_sim.py        # Position sizing simulation
-├── strategies/              # Strategy implementations
-│   ├── alpha_engine.py
-│   ├── alpha_research.py
-│   └── hft_candidates.py
-├── config/                  # Configuration templates
-└── results/                 # Outputs
-    ├── backtest_report.html # Paper-trading simulation (see note below)
+├── risk/                        # Risk management (runnable offline)
+│   ├── risk_kill_switch.py      # Intraday/weekly kill switch
+│   ├── hrp.py                   # Hierarchical Risk Parity
+│   ├── kelly.py                 # Fractional Kelly sizing
+│   └── v40_risk.py              # V4.0 model-agnostic risk rails
+├── backtest/                    # Evaluation scripts (need private DB)
+│   ├── backtest_spot_signals.py # Vol-regime signal validation
+│   └── sizing_sim.py            # 20k-grid sizing sim + Monte Carlo
+├── strategies/
+│   └── hft_candidates.py        # Typed strategy spec data classes
+├── core/
+│   └── alpha_factory_v3.py      # Orchestrator scaffold (private deps not included)
+├── config/
+│   └── config.example.yaml      # Config template
+└── results/
+    ├── backtest_report.html      # Paper-trading simulation (see note below)
     └── live_track_record.json
 ```
 
@@ -169,11 +172,11 @@ kalshi-showcase/
 - **No API keys, private keys, or tokens in this repo**
 - `.env.example` shows required variables (fill locally)
 - Database files (`*.db`) are gitignored
-- Strategy-specific alpha logic is abstracted — this is an architecture showcase
+- Strategy-specific alpha logic is in the private repository
 
 ## License
 
-MIT License — Architecture showcase only. Strategy IP not included.
+MIT License — Risk layer and track record only. Strategy and execution IP not included.
 
 ---
 
