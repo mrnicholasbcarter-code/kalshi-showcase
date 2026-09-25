@@ -1,0 +1,27 @@
+{
+ "source": "Kalshi exchange API, read-only: /historical/positions (exchange-computed realized P&L and fees per market) and /historical/fills",
+ "account_period_utc": [
+  "2026-03-20",
+  "2026-07-18"
+ ],
+ "markets_traded": 3566,
+ "fills": 4945,
+ "win_definition": "a market position whose exchange-reported realized P&L is > 0; win rate = wins / (wins + losses)",
+ "win_rate": 0.854,
+ "wins": 3045,
+ "losses": 519,
+ "win_rate_by_month": {
+  "2026-03": 0.9488,
+  "2026-04": 0.9094,
+  "2026-05": 0.9555,
+  "2026-06": 0.6633
+ },
+ "average_win_usd": 0.91,
+ "average_loss_usd": -5.99,
+ "raw_data_sha256": {
+  "historical_positions": "2dfabf2de1db3e6ef2fbf04e45986f3fd228e6c04d39a8dcf232500ad917d458",
+  "historical_fills": "80b3f8911edfcc239e540f1715ebaff8d148325e91580c86d166da604e44c614"
+ },
+ "raw_data_published": false,
+ "verified_at_utc": "2026-09-25T21:13:44+00:00"
+}
